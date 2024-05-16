@@ -1,18 +1,20 @@
-
 import opencc
 import alive_progress as ap
 import logging
-import time
 import os
+import argparse
 
 logger: logging.Logger = None
 converter: opencc.OpenCC = None
 
+
 def s2t(words: str) -> str:
     return converter.convert(words)
 
+
 def get_child_dir(pfdir, cfdir):
-    return cfdir[len(pfdir) : len(cfdir)]
+    return cfdir[len(pfdir): len(cfdir)]
+
 
 def s2t_for_file(origin, target):
     oFile = open(origin)
@@ -23,6 +25,7 @@ def s2t_for_file(origin, target):
             tFile.write(s2t(line))
             tFile.write('\n')
             bar()
+
 
 def walk_files(pdir, outdir):
     logger.info("PDir    >" + pdir)
@@ -48,14 +51,30 @@ def walk_files(pdir, outdir):
             logger.info("**** Current File End ****")
         logger.info("**** Current RootDir End ****")
 
+
 def main():
     global logger, converter
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pdir", type=str, help="the directory of untranslated files")
+    parser.add_argument("outdir", type=str, help="the directory to output translated files")
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("s2t_file")
     converter = opencc.OpenCC("s2t.json")
 
-    walk_files("/home/srcres/Coding/Projects/linux-doc/Documentation/translations/zh_CN/",
-               "/home/srcres/Coding/Projects/linux-doc/series/s2t_file/")
+    pdir: str = args.pdir
+    outdir: str = args.outdir
+    # Ensure the dir strings end with sep
+    sep = os.path.sep
+    if not pdir.endswith(sep):
+        pdir += sep
+    if not outdir.endswith(sep):
+        outdir += sep
+
+    walk_files(pdir, outdir)
+
 
 if __name__ == "__main__":
     main()
